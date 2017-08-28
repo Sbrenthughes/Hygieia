@@ -54,7 +54,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		http.headers().cacheControl();
 		http.csrf().disable()
 			.authorizeRequests().antMatchers("/appinfo").permitAll()
-								.antMatchers("/registerUser").permitAll()
+								.antMatchers(HttpMethod.POST,"/registerUser").permitAll()
 								.antMatchers("/login**").permitAll()
 								//TODO: sample call secured with ROLE_API
 								//.antMatchers("/ping").hasAuthority("ROLE_API")
