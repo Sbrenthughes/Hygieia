@@ -8,7 +8,7 @@ import org.springframework.boot.autoconfigure.security.Http401AuthenticationEntr
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
+
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -16,7 +16,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.ldap.authentication.ad.ActiveDirectoryLdapAuthenticationProvider;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
 
 import com.capitalone.dashboard.auth.AuthProperties;
 import com.capitalone.dashboard.auth.AuthenticationResultHandler;
@@ -25,7 +25,6 @@ import com.capitalone.dashboard.auth.apitoken.ApiTokenRequestFilter;
 import com.capitalone.dashboard.auth.ldap.CustomUserDetailsContextMapper;
 import com.capitalone.dashboard.auth.ldap.LdapLoginRequestFilter;
 import com.capitalone.dashboard.auth.standard.StandardLoginRequestFilter;
-import com.capitalone.dashboard.auth.token.JwtAuthenticationFilter;
 import com.capitalone.dashboard.model.AuthType;
 
 @Configuration
@@ -34,8 +33,8 @@ import com.capitalone.dashboard.model.AuthType;
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	
-	@Autowired
-	private JwtAuthenticationFilter jwtAuthenticationFilter;
+	//@Autowired
+	//private JwtAuthenticationFilter jwtAuthenticationFilter;
 	
 	@Autowired
 	private AuthenticationResultHandler authenticationResultHandler;
