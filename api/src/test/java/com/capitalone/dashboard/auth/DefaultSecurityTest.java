@@ -15,8 +15,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.http.MediaType;
-import org.springframework.test.annotation.Rollback;
+ import org.springframework.context.annotation.Import;
+ import org.springframework.http.MediaType;
+ import org.springframework.security.access.SecurityConfig;
+ import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -47,6 +49,7 @@ import com.google.common.collect.Lists;
  @WebAppConfiguration
  @TestPropertySource(locations="classpath:test.properties")
  @Rollback(true)
+ @Import(SecurityConfig.class)
  public class DefaultSecurityTest {
  
  	@Autowired
