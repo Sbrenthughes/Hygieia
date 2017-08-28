@@ -8,7 +8,7 @@ import org.springframework.boot.autoconfigure.security.Http401AuthenticationEntr
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -16,7 +16,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.ldap.authentication.ad.ActiveDirectoryLdapAuthenticationProvider;
-
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.capitalone.dashboard.auth.AuthProperties;
 import com.capitalone.dashboard.auth.AuthenticationResultHandler;
@@ -25,6 +25,7 @@ import com.capitalone.dashboard.auth.apitoken.ApiTokenRequestFilter;
 import com.capitalone.dashboard.auth.ldap.CustomUserDetailsContextMapper;
 import com.capitalone.dashboard.auth.ldap.LdapLoginRequestFilter;
 import com.capitalone.dashboard.auth.standard.StandardLoginRequestFilter;
+import com.capitalone.dashboard.auth.token.JwtAuthenticationFilter;
 import com.capitalone.dashboard.model.AuthType;
 
 @Configuration
@@ -33,8 +34,8 @@ import com.capitalone.dashboard.model.AuthType;
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	
-	//@Autowired
-	//private JwtAuthenticationFilter jwtAuthenticationFilter;
+	@Autowired
+	private JwtAuthenticationFilter jwtAuthenticationFilter;
 	
 	@Autowired
 	private AuthenticationResultHandler authenticationResultHandler;
@@ -52,30 +53,29 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	protected void configure(HttpSecurity http) throws Exception {
 		http.headers().cacheControl();
 		http.csrf().disable()
-			.authorizeRequests().antMatchers("/registerUser").permitAll()
-//				.antMatchers("/appinfo").permitAll()
-//
-//								.antMatchers("/login**").permitAll()
-//								//TODO: sample call secured with ROLE_API
-//								//.antMatchers("/ping").hasAuthority("ROLE_API")
-//								.antMatchers(HttpMethod.GET, "/**").permitAll()
-//
-//								// Temporary solution to allow jenkins plugin to send data to the api
-//							    //TODO: Secure with API Key
-//								.antMatchers(HttpMethod.POST, "/build").permitAll()
-//					            .antMatchers(HttpMethod.POST, "/deploy").permitAll()
-//								.antMatchers(HttpMethod.POST, "/performance").permitAll()
-//					            .antMatchers(HttpMethod.POST, "/artifact").permitAll()
-//					            .antMatchers(HttpMethod.POST, "/quality/test").permitAll()
-//					            .antMatchers(HttpMethod.POST, "/quality/static-analysis").permitAll()
-//                                //Temporary solution to allow Github webhook
-//                                .antMatchers(HttpMethod.POST, "/commit/github/v3").permitAll()
+			.authorizeRequests().antMatchers("/appinfo").permitAll()
+								.antMatchers("/registerUser").permitAll()
+								.antMatchers("/login**").permitAll()
+								//TODO: sample call secured with ROLE_API
+								//.antMatchers("/ping").hasAuthority("ROLE_API")
+								.antMatchers(HttpMethod.GET, "/**").permitAll()
+								
+								// Temporary solution to allow jenkins plugin to send data to the api
+							    //TODO: Secure with API Key
+								.antMatchers(HttpMethod.POST, "/build").permitAll()
+					            .antMatchers(HttpMethod.POST, "/deploy").permitAll()
+								.antMatchers(HttpMethod.POST, "/performance").permitAll()
+					            .antMatchers(HttpMethod.POST, "/artifact").permitAll()
+					            .antMatchers(HttpMethod.POST, "/quality/test").permitAll()
+					            .antMatchers(HttpMethod.POST, "/quality/static-analysis").permitAll()
+                                //Temporary solution to allow Github webhook
+                                .antMatchers(HttpMethod.POST, "/commit/github/v3").permitAll()
 								.anyRequest().authenticated()
 									.and()
-//								.addFilterBefore(standardLoginRequestFilter(), UsernamePasswordAuthenticationFilter.class)
-//								.addFilterBefore(ldapLoginRequestFilter(), UsernamePasswordAuthenticationFilter.class)
-//								.addFilterBefore(apiTokenRequestFilter(), UsernamePasswordAuthenticationFilter.class)
-//								.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+								.addFilterBefore(standardLoginRequestFilter(), UsernamePasswordAuthenticationFilter.class)
+								.addFilterBefore(ldapLoginRequestFilter(), UsernamePasswordAuthenticationFilter.class)
+								.addFilterBefore(apiTokenRequestFilter(), UsernamePasswordAuthenticationFilter.class)
+								.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 								.exceptionHandling().authenticationEntryPoint(new Http401AuthenticationEntryPoint("Authorization"));
 	}
 	

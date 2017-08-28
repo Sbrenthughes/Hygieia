@@ -78,7 +78,10 @@ import com.google.common.collect.Lists;
      public void appinfo() throws Exception {
          mockMvc.perform(get("/appinfo")).andExpect(status().isOk());
      }
-     
+	 @Test
+	 public void createDashboard() throws Exception {
+		 mockMvc.perform(post("/dashboard")).andExpect(status().isUnauthorized());
+	 }
      @Test
      public void registerUser() throws Exception {
      	when(authenticationTestRepository.save(isA(Authentication.class))).thenReturn(new Authentication("somebody", "somebody"));
@@ -93,10 +96,7 @@ import com.google.common.collect.Lists;
      }
      
  
-     @Test
-     public void createDashboard() throws Exception {
-         mockMvc.perform(post("/dashboard")).andExpect(status().isUnauthorized());
-     }
+
      
      @Test
      public void adminUser_deleteDashboard() throws Exception{
