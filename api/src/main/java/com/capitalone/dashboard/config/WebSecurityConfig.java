@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.Http401AuthenticationEntryPoint;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,7 +16,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.ldap.authentication.ad.ActiveDirectoryLdapAuthenticationProvider;
-import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.capitalone.dashboard.auth.AuthProperties;
@@ -53,8 +53,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	protected void configure(HttpSecurity http) throws Exception {
 		http.headers().cacheControl();
 		http.csrf().disable()
-			.authorizeRequests().antMatchers("/appinfo").permitAll()
-								.antMatchers("/registerUser").permitAll()
+			.authorizeRequests().antMatchers("/registerUser").permitAll().antMatchers("/appinfo").permitAll()
+
 								.antMatchers("/login**").permitAll()
 								//TODO: sample call secured with ROLE_API
 								//.antMatchers("/ping").hasAuthority("ROLE_API")
@@ -76,7 +76,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 								.addFilterBefore(ldapLoginRequestFilter(), UsernamePasswordAuthenticationFilter.class)
 								.addFilterBefore(apiTokenRequestFilter(), UsernamePasswordAuthenticationFilter.class)
 								.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-								.exceptionHandling().authenticationEntryPoint(new Http403ForbiddenEntryPoint());
+								.exceptionHandling().authenticationEntryPoint(new Http401AuthenticationEntryPoint("Authorization"));
 	}
 	
     @Override
