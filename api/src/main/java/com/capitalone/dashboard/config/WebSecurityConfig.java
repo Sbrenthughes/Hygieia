@@ -53,12 +53,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	protected void configure(HttpSecurity http) throws Exception {
 		http.headers().cacheControl();
 		http.csrf().disable()
-			.authorizeRequests().antMatchers("/appinfo").permitAll()
-								.antMatchers(HttpMethod.POST,"/registerUser").permitAll()
+			.authorizeRequests().antMatchers(HttpMethod.GET, "/**").permitAll().antMatchers("/appinfo").permitAll()
+								.antMatchers("/registerUser").permitAll()
 								.antMatchers("/login**").permitAll()
 								//TODO: sample call secured with ROLE_API
 								//.antMatchers("/ping").hasAuthority("ROLE_API")
-								.antMatchers(HttpMethod.GET, "/**").permitAll()
+								//.antMatchers(HttpMethod.GET, "/**").permitAll()
 								
 								// Temporary solution to allow jenkins plugin to send data to the api
 							    //TODO: Secure with API Key
