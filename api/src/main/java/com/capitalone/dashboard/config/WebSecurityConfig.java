@@ -77,6 +77,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 								.addFilterBefore(apiTokenRequestFilter(), UsernamePasswordAuthenticationFilter.class)
 								.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 								.exceptionHandling().authenticationEntryPoint(new Http401AuthenticationEntryPoint("Authorization"));
+		super.configure(http);
 	}
 	
     @Override
