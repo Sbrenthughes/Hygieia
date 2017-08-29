@@ -8,7 +8,7 @@ import org.springframework.boot.autoconfigure.security.Http401AuthenticationEntr
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -54,22 +54,22 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		http.headers().cacheControl();
 		http.csrf().disable()
 			.authorizeRequests().antMatchers("/appinfo").permitAll()
-								.antMatchers("/registerUser").permitAll()
-//								.antMatchers("/login**").permitAll()
-//								//TODO: sample call secured with ROLE_API
-//								//.antMatchers("/ping").hasAuthority("ROLE_API")
-//								.antMatchers(HttpMethod.GET, "/**").permitAll()
-//
-//								// Temporary solution to allow jenkins plugin to send data to the api
-//							    //TODO: Secure with API Key
-//								.antMatchers(HttpMethod.POST, "/build").permitAll()
-//					            .antMatchers(HttpMethod.POST, "/deploy").permitAll()
-//								.antMatchers(HttpMethod.POST, "/performance").permitAll()
-//					            .antMatchers(HttpMethod.POST, "/artifact").permitAll()
-//					            .antMatchers(HttpMethod.POST, "/quality/test").permitAll()
-//					            .antMatchers(HttpMethod.POST, "/quality/static-analysis").permitAll()
-//                                //Temporary solution to allow Github webhook
-//                                .antMatchers(HttpMethod.POST, "/commit/github/v3").permitAll()
+								.antMatchers(HttpMethod.POST,"/registerUser").permitAll()
+								.antMatchers("/login**").permitAll()
+								//TODO: sample call secured with ROLE_API
+								//.antMatchers("/ping").hasAuthority("ROLE_API")
+								.antMatchers(HttpMethod.GET, "/**").permitAll()
+
+								// Temporary solution to allow jenkins plugin to send data to the api
+							    //TODO: Secure with API Key
+								.antMatchers(HttpMethod.POST, "/build").permitAll()
+					            .antMatchers(HttpMethod.POST, "/deploy").permitAll()
+								.antMatchers(HttpMethod.POST, "/performance").permitAll()
+					            .antMatchers(HttpMethod.POST, "/artifact").permitAll()
+					            .antMatchers(HttpMethod.POST, "/quality/test").permitAll()
+					            .antMatchers(HttpMethod.POST, "/quality/static-analysis").permitAll()
+                                //Temporary solution to allow Github webhook
+                                .antMatchers(HttpMethod.POST, "/commit/github/v3").permitAll()
 								.anyRequest().authenticated()
 									.and()
 								.addFilterBefore(standardLoginRequestFilter(), UsernamePasswordAuthenticationFilter.class)
