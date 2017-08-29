@@ -77,13 +77,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 								.addFilterBefore(apiTokenRequestFilter(), UsernamePasswordAuthenticationFilter.class)
 								.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 								.exceptionHandling().authenticationEntryPoint(new Http401AuthenticationEntryPoint("Authorization"));
-		super.configure(http);
+
 	}
 	
     @Override
 	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         List<AuthType> authenticationProviders = authProperties.getAuthenticationProviders();
-        
+		auth.authenticationProvider(apiTokenAuthenticationProvider);
         if(authenticationProviders.contains(AuthType.STANDARD)) {
             auth.authenticationProvider(standardAuthenticationProvider);
         }
@@ -93,7 +93,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     		configureActiveDirectory(auth);
         }
 		
-		auth.authenticationProvider(apiTokenAuthenticationProvider);
+		//
 	}
 
     private void configureActiveDirectory(AuthenticationManagerBuilder auth) {
