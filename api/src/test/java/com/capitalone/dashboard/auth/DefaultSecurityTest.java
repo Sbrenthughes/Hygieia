@@ -13,7 +13,9 @@ import org.bson.types.ObjectId;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.http.MediaType;
  import org.springframework.security.core.context.SecurityContextHolder;
@@ -49,7 +51,7 @@ import com.google.common.collect.Lists;
  @TestPropertySource(locations="classpath:test.properties")
  @Rollback(true)
  public class DefaultSecurityTest {
-
+	 private static Logger logger = LoggerFactory.getLogger("DefaultSecurityTest");
  	@Autowired
      private WebApplicationContext context;
 
@@ -84,7 +86,8 @@ import com.google.common.collect.Lists;
      
      @Test
      public void registerUser() throws Exception {
-		 System.out.println(SecurityContextHolder.getContext());
+
+		 logger.info("stephen info"+ SecurityContextHolder.getContext());
      	when(authenticationTestRepository.save(isA(Authentication.class))).thenReturn(new Authentication("somebody", "somebody"));
          mockMvc.perform(post("/registerUser")
          		.contentType(MediaType.APPLICATION_JSON_VALUE).content("{\"username\":\"somebody\",\"password\":\"somebody\"}")
