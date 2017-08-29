@@ -48,7 +48,6 @@ import com.google.common.collect.Lists;
  @WebAppConfiguration
  @TestPropertySource(locations="classpath:test.properties")
  @Rollback(true)
- @DirtiesContext
  public class DefaultSecurityTest {
  
  	@Autowired
@@ -82,6 +81,7 @@ import com.google.common.collect.Lists;
      }
      
      @Test
+	 @DirtiesContext
      public void registerUser() throws Exception {
      	when(authenticationTestRepository.save(isA(Authentication.class))).thenReturn(new Authentication("somebody", "somebody"));
          mockMvc.perform(post("/registerUser")
