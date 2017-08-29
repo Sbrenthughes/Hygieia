@@ -84,6 +84,7 @@ import com.google.common.collect.Lists;
      
      @Test
      public void registerUser() throws Exception {
+		 System.out.println(SecurityContextHolder.getContext());
      	when(authenticationTestRepository.save(isA(Authentication.class))).thenReturn(new Authentication("somebody", "somebody"));
          mockMvc.perform(post("/registerUser")
          		.contentType(MediaType.APPLICATION_JSON_VALUE).content("{\"username\":\"somebody\",\"password\":\"somebody\"}")
