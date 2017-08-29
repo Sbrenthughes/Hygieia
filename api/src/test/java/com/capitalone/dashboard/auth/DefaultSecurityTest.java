@@ -13,13 +13,10 @@ import org.bson.types.ObjectId;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
- import org.slf4j.Logger;
- import org.slf4j.LoggerFactory;
- import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.http.MediaType;
- import org.springframework.security.core.context.SecurityContextHolder;
- import org.springframework.test.annotation.Rollback;
+import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -44,39 +41,37 @@ import com.capitalone.dashboard.repository.DashboardRepository;
 import com.capitalone.dashboard.repository.UserInfoRepository;
 import com.capitalone.dashboard.service.DashboardService;
 import com.google.common.collect.Lists;
-
+ 
  @RunWith(SpringJUnit4ClassRunner.class)
  @SpringApplicationConfiguration(classes = {TestDefaultAuthConfig.class, WebMVCConfig.class, WebSecurityConfig.class})
  @WebAppConfiguration
  @TestPropertySource(locations="classpath:test.properties")
  @Rollback(true)
  public class DefaultSecurityTest {
-	 private static Logger logger = LoggerFactory.getLogger("DefaultSecurityTest");
+ 
  	@Autowired
      private WebApplicationContext context;
-
+     
  	@Autowired
  	private DashboardService dashboardTestService;
-
+ 	
  	@Autowired
  	private DashboardRepository dashboardTestRepository;
-
+ 	
  	@Autowired
  	private AuthenticationRepository authenticationTestRepository;
-
+ 	
  	@Autowired
  	private UserInfoRepository userInfoRepository;
-
+ 
      private MockMvc mockMvc;
-
+     
      @Before
      public void setUp() {
-		// SecurityContextHolder.clearContext();
      	mockMvc = MockMvcBuilders
                  .webAppContextSetup(context)
                  .apply(springSecurity())
                  .build();
-
      }
  
      @Test
@@ -86,13 +81,10 @@ import com.google.common.collect.Lists;
      
      @Test
      public void registerUser() throws Exception {
-
-		 logger.info("stephen info "+ SecurityContextHolder.getContext().getAuthentication());
      	when(authenticationTestRepository.save(isA(Authentication.class))).thenReturn(new Authentication("somebody", "somebody"));
          mockMvc.perform(post("/registerUser")
          		.contentType(MediaType.APPLICATION_JSON_VALUE).content("{\"username\":\"somebody\",\"password\":\"somebody\"}")
          		).andExpect(status().isOk());
-		 logger.info("stephen1 info"+ SecurityContextHolder.getContext().getAuthentication());
      }
      
      @Test
