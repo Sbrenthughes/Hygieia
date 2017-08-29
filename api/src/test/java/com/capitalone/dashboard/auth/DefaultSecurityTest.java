@@ -16,7 +16,8 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.http.MediaType;
-import org.springframework.test.annotation.Rollback;
+ import org.springframework.security.core.context.SecurityContextHolder;
+ import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
@@ -41,37 +42,39 @@ import com.capitalone.dashboard.repository.DashboardRepository;
 import com.capitalone.dashboard.repository.UserInfoRepository;
 import com.capitalone.dashboard.service.DashboardService;
 import com.google.common.collect.Lists;
- 
+
  @RunWith(SpringJUnit4ClassRunner.class)
  @SpringApplicationConfiguration(classes = {TestDefaultAuthConfig.class, WebMVCConfig.class, WebSecurityConfig.class})
  @WebAppConfiguration
  @TestPropertySource(locations="classpath:test.properties")
  @Rollback(true)
  public class DefaultSecurityTest {
- 
+
  	@Autowired
      private WebApplicationContext context;
-     
+
  	@Autowired
  	private DashboardService dashboardTestService;
- 	
+
  	@Autowired
  	private DashboardRepository dashboardTestRepository;
- 	
+
  	@Autowired
  	private AuthenticationRepository authenticationTestRepository;
- 	
+
  	@Autowired
  	private UserInfoRepository userInfoRepository;
- 
+
      private MockMvc mockMvc;
-     
+
      @Before
      public void setUp() {
+		 SecurityContextHolder.clearContext();
      	mockMvc = MockMvcBuilders
                  .webAppContextSetup(context)
                  .apply(springSecurity())
                  .build();
+
      }
  
      @Test
