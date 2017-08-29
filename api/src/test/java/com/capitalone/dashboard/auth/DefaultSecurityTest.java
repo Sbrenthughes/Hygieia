@@ -79,7 +79,7 @@ import com.google.common.collect.Lists;
          mockMvc.perform(get("/appinfo")).andExpect(status().isOk());
      }
      
-    // @Test
+     @Test
      public void registerUser() throws Exception {
      	when(authenticationTestRepository.save(isA(Authentication.class))).thenReturn(new Authentication("somebody", "somebody"));
          mockMvc.perform(post("/registerUser")

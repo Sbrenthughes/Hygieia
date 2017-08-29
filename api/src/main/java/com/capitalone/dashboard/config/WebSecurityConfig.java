@@ -54,12 +54,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		http.headers().cacheControl();
 		http.csrf().disable()
 			.authorizeRequests().antMatchers("/appinfo").permitAll()
-							//	.antMatchers(HttpMethod.POST,"/registerUser").permitAll()
+								.antMatchers("/registerUser").permitAll()
 								.antMatchers("/login**").permitAll()
 								//TODO: sample call secured with ROLE_API
 								//.antMatchers("/ping").hasAuthority("ROLE_API")
 								.antMatchers(HttpMethod.GET, "/**").permitAll()
-
+								
 								// Temporary solution to allow jenkins plugin to send data to the api
 							    //TODO: Secure with API Key
 								.antMatchers(HttpMethod.POST, "/build").permitAll()
@@ -82,7 +82,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
 	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         List<AuthType> authenticationProviders = authProperties.getAuthenticationProviders();
-
+        
         if(authenticationProviders.contains(AuthType.STANDARD)) {
             auth.authenticationProvider(standardAuthenticationProvider);
         }
