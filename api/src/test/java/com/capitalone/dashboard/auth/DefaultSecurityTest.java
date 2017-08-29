@@ -92,6 +92,7 @@ import com.google.common.collect.Lists;
          mockMvc.perform(post("/registerUser")
          		.contentType(MediaType.APPLICATION_JSON_VALUE).content("{\"username\":\"somebody\",\"password\":\"somebody\"}")
          		).andExpect(status().isOk());
+		 logger.info("stephen1 info"+ SecurityContextHolder.getContext());
      }
      
      @Test
