@@ -69,7 +69,7 @@ import com.google.common.collect.Lists;
 
      @Before
      public void setUp() {
-		 SecurityContextHolder.clearContext();
+		// SecurityContextHolder.clearContext();
      	mockMvc = MockMvcBuilders
                  .webAppContextSetup(context)
                  .apply(springSecurity())
