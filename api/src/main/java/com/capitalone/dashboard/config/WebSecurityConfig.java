@@ -55,21 +55,21 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 		http.csrf().disable()
 			.authorizeRequests().antMatchers("/appinfo").permitAll()
 								.antMatchers("/registerUser").permitAll()
-								.antMatchers("/login**").permitAll()
-								//TODO: sample call secured with ROLE_API
-								//.antMatchers("/ping").hasAuthority("ROLE_API")
-								.antMatchers(HttpMethod.GET, "/**").permitAll()
-								
-								// Temporary solution to allow jenkins plugin to send data to the api
-							    //TODO: Secure with API Key
-								.antMatchers(HttpMethod.POST, "/build").permitAll()
-					            .antMatchers(HttpMethod.POST, "/deploy").permitAll()
-								.antMatchers(HttpMethod.POST, "/performance").permitAll()
-					            .antMatchers(HttpMethod.POST, "/artifact").permitAll()
-					            .antMatchers(HttpMethod.POST, "/quality/test").permitAll()
-					            .antMatchers(HttpMethod.POST, "/quality/static-analysis").permitAll()
-                                //Temporary solution to allow Github webhook
-                                .antMatchers(HttpMethod.POST, "/commit/github/v3").permitAll()
+//								.antMatchers("/login**").permitAll()
+//								//TODO: sample call secured with ROLE_API
+//								//.antMatchers("/ping").hasAuthority("ROLE_API")
+//								.antMatchers(HttpMethod.GET, "/**").permitAll()
+//
+//								// Temporary solution to allow jenkins plugin to send data to the api
+//							    //TODO: Secure with API Key
+//								.antMatchers(HttpMethod.POST, "/build").permitAll()
+//					            .antMatchers(HttpMethod.POST, "/deploy").permitAll()
+//								.antMatchers(HttpMethod.POST, "/performance").permitAll()
+//					            .antMatchers(HttpMethod.POST, "/artifact").permitAll()
+//					            .antMatchers(HttpMethod.POST, "/quality/test").permitAll()
+//					            .antMatchers(HttpMethod.POST, "/quality/static-analysis").permitAll()
+//                                //Temporary solution to allow Github webhook
+//                                .antMatchers(HttpMethod.POST, "/commit/github/v3").permitAll()
 								.anyRequest().authenticated()
 									.and()
 								.addFilterBefore(standardLoginRequestFilter(), UsernamePasswordAuthenticationFilter.class)
@@ -77,13 +77,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 								.addFilterBefore(apiTokenRequestFilter(), UsernamePasswordAuthenticationFilter.class)
 								.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 								.exceptionHandling().authenticationEntryPoint(new Http401AuthenticationEntryPoint("Authorization"));
-
 	}
 	
     @Override
 	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         List<AuthType> authenticationProviders = authProperties.getAuthenticationProviders();
-		auth.authenticationProvider(apiTokenAuthenticationProvider);
+
         if(authenticationProviders.contains(AuthType.STANDARD)) {
             auth.authenticationProvider(standardAuthenticationProvider);
         }
@@ -93,7 +92,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     		configureActiveDirectory(auth);
         }
 		
-		//
+		auth.authenticationProvider(apiTokenAuthenticationProvider);
 	}
 
     private void configureActiveDirectory(AuthenticationManagerBuilder auth) {
