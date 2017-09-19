@@ -36,6 +36,7 @@ import com.capitalone.dashboard.service.DeployService;
 import com.capitalone.dashboard.service.EncryptionService;
 import com.capitalone.dashboard.service.FeatureService;
 import com.capitalone.dashboard.service.PipelineService;
+import com.capitalone.dashboard.service.PropertyManagerService;
 import com.capitalone.dashboard.service.ScopeService;
 import com.capitalone.dashboard.service.ServiceService;
 import com.capitalone.dashboard.service.TeamService;
@@ -222,5 +223,9 @@ import com.capitalone.dashboard.util.PaginationHeaderUtility;
     public TemplateService templateService() {
         return Mockito.mock(TemplateService.class);
     }
+	 @Bean
+	 public PropertyManagerService propertyManagerService() {
+		 return Mockito.mock(PropertyManagerService.class);
+	 }
  }
 

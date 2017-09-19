@@ -6,11 +6,24 @@
 
     angular
         .module(HygieiaConfig.module)
-        .controller('AdminController', AdminController);
+        .controller('AdminController', AdminController).directive('fileModel', ['$parse', function ($parse) {
+        return {
+            restrict: 'A',
+            link: function(scope, element, attrs) {
+                var model = $parse(attrs.fileModel);
+                var modelSetter = model.assign;
+                element.bind('change', function(){
+                    scope.$apply(function(){
+                        modelSetter(scope, element[0].files[0]);
+                    });
+                });
+            }
+        };
+    }]);
 
 
-    AdminController.$inject = ['$scope', 'dashboardData', '$location', '$uibModal', 'userService', 'authService', 'userData', 'dashboardService', 'templateMangerData'];
-    function AdminController($scope, dashboardData, $location, $uibModal, userService, authService, userData, dashboardService, templateMangerData) {
+    AdminController.$inject = ['$scope', 'dashboardData', '$location', '$uibModal', 'userService', 'authService', 'userData', 'dashboardService', 'templateMangerData','propertyManager'];
+    function AdminController($scope, dashboardData, $location, $uibModal, userService, authService, userData, dashboardService, templateMangerData,propertyManager) {
         var ctrl = this;
         if (userService.isAuthenticated() && userService.isAdmin()) {
             $location.path('/admin');
@@ -35,6 +48,12 @@
         ctrl.editTemplate = editTemplate;
         ctrl.deleteToken = deleteToken;
         ctrl.editToken = editToken;
+        ctrl.getPropertyItemList = getPropertyItemList;
+        ctrl.getPropertiesForSelected = getPropertiesForSelected;
+        ctrl.addProperty = addProperty;
+        ctrl.deleteProperty = deleteProperty;
+        ctrl.editProperty = editProperty;
+        ctrl.submitProperty = submitProperty;
 
         $scope.tab = "dashboards";
 
@@ -316,6 +335,69 @@
                 }
             );
         }
+        $scope.uploadFile = function(){
+            var file = $scope.myFile;
+            propertyManager.uploadFileToUrl(file);
+        };
+        function getPropertyItemList(filter) {
+            return propertyManager.getStoredItemPropertyList({"search": filter, "size": 20}).then(function (response){
+                return response;
+            });
+        }
 
+        function getPropertiesForSelected(propertyType){
+            propertyManager.getSelectedItemProperties(propertyType).then(function (response){
+                ctrl.collectorItemProperties = response
+            })
+        }
+        function addProperty(form){
+
+            if (form.$valid) {
+                var submitData = {
+                    name: ctrl.propertyManager.name,
+                    propertiesKey: document.addPropertyForm.propertiesKey.value,
+                    propertiesValue: document.addPropertyForm.propertiesValue.value
+                };
+                submitProperty(submitData);
+            }
+
+        }
+        function editProperty(key, value){
+            console.log(value)
+            var submitData = {
+                name: ctrl.propertyManager.name,
+                propertiesKey: key,
+                propertiesValue: value
+            };
+            submitProperty(submitData);
+        }
+        function deleteProperty(key, value){
+
+            var submitData = {
+                name: ctrl.propertyManager.name,
+                propertiesKey: key,
+                propertiesValue: value
+            };
+            propertyManager
+                .removeProperties(submitData)
+                .success(function (data) {
+                    getPropertiesForSelected(data.name)
+                })
+                .error(function (data) {
+
+                });
+        }
+        function submitProperty(submitData){
+
+
+            propertyManager
+                .updateProperties(submitData)
+                .success(function (data) {
+                    getPropertiesForSelected(data.name)
+                })
+                .error(function (data) {
+
+                });
+        }
     }
 })();
