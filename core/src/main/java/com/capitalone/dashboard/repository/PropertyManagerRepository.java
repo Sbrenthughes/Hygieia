@@ -15,6 +15,6 @@ public interface PropertyManagerRepository extends CrudRepository<PropertyManage
 
     PropertyManager findByName(String name);
 
-    Page<PropertyManager> findAllByNameContainingIgnoreCase(String name, Pageable pageable);
+    Page<PropertyManager> findAll(Pageable pageable);
 
 }

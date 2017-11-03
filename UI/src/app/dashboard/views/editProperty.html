@@ -1,0 +1,50 @@
+<widget-modal widget-modal-title="Administer Your Properties">
+    <div class="row">
+        <div class="widget-modal-body">
+                <h3>Add Properties</h3>
+                <form name="addPropertyForm" class="form"   ng-submit="ctrl.addProperty(addPropertyForm)" novalidate>
+                    <div class="dash-modal-row delete-dashboard-row clearfix">
+                        <div class="col-sm-5">
+                            <form-group input="propertiesKey" errors="{pattern : 'Period(s) found.'}">
+                                <input type="text"
+                                       class="form-control"
+                                       ng-model="ctrl.propertiesKey"
+                                       name="propertiesKey"
+                                       ng-pattern="/^[^.]*$/"
+                                       required/>
+                            </form-group>
+                        </div>
+                        <div class="col-sm-5">
+                            <form-group input="propertiesValue" >
+                                <input type="text"
+                                       class="form-control"
+                                       ng-model="ctrl.propertiesValue"
+                                       name="propertiesValue" />
+                            </form-group>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <button type="submit" class="btn btn-primary btn-wide">Save</button>
+                    </div>
+                </form>
+                <h3>{{ctrl.collectorItemProperties.name}} Managed Properties</h3>
+                <div class="dash-modal-row delete-dashboard-row clearfix"
+                     ng-repeat="(key, value)  in ctrl.collectorItemProperties.properties">
+
+                    <div class="col-sm-5">
+                        <input type="text" ng-model="key" class="form-control" readonly/>
+
+                    </div>
+                    <div class="col-sm-5">
+                        <input type="text" ng-model="value" class="form-control"/>
+
+                    </div>
+                    <div class="col-sm-2 text-center">
+                        <dash-edit  class="clickable" ng-click="ctrl.editProperty(key, value)"></dash-edit>
+                        <dash-trash class="clickable" ng-click="ctrl.deleteProperty(key, value)"></dash-trash>
+                    </div>
+
+                </div>
+        </div>
+    </div>
+</widget-modal>

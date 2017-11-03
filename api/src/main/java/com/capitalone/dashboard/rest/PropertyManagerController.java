@@ -68,14 +68,13 @@ public class PropertyManagerController {
     }
     @RequestMapping(value = "/propertyManager/propertyList/", method = GET,
             produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<PropertyManager>> getPropertyList(@RequestParam(value = "search", required = false, defaultValue = "") String descriptionFilter, @PageableDefault(size = Integer.MAX_VALUE) Pageable pageable) {
+    public ResponseEntity<Iterable<PropertyManager>> getPropertyList(@PageableDefault(size = Integer.MAX_VALUE) Pageable pageable) {
 
-        Page<PropertyManager> pageOfConfigurationItems = propertyManagerService.collectorPropertiesWithFilter(descriptionFilter,pageable);
+        Iterable<PropertyManager> pageOfConfigurationItems = propertyManagerService.collectorPropertiesWithFilter(pageable);
 
         return ResponseEntity
                 .ok()
-                .headers(paginationHeaderUtility.buildPaginationHeaders(pageOfConfigurationItems))
-                .body(pageOfConfigurationItems.getContent());
+                .body(pageOfConfigurationItems);
 
     }
     @RequestMapping(value = "/propertyManager/getSelectedProperty/{type}", method = GET, produces = APPLICATION_JSON_VALUE)

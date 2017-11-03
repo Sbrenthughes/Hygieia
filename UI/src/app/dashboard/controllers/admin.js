@@ -48,13 +48,10 @@
         ctrl.editTemplate = editTemplate;
         ctrl.deleteToken = deleteToken;
         ctrl.editToken = editToken;
-        ctrl.getPropertyItemList = getPropertyItemList;
-        ctrl.getPropertiesForSelected = getPropertiesForSelected;
-        ctrl.addProperty = addProperty;
-        ctrl.deleteProperty = deleteProperty;
-        ctrl.editProperty = editProperty;
-        ctrl.submitProperty = submitProperty;
-
+        ctrl.loadResources = loadResources;
+        ctrl.editPropertyFile = editPropertyFile;
+        ctrl.deletePropertyFile = deletePropertyFile;
+        ctrl.createPropertyFile = createPropertyFile;
         $scope.tab = "dashboards";
 
         // list of available themes. Must be updated manually
@@ -89,13 +86,16 @@
         ctrl.applyTheme = applyTheme;
 
 
-        // request dashboards
-        dashboardData.search().then(processResponse);
-        userData.getAllUsers().then(processUserResponse);
-        userData.apitokens().then(processTokenResponse);
-        templateMangerData.getAllTemplates().then(processTemplateResponse);
+        ctrl.loadResources();
 
-
+        function loadResources(){
+            // request dashboards
+            dashboardData.search().then(processResponse);
+            userData.getAllUsers().then(processUserResponse);
+            userData.apitokens().then(processTokenResponse);
+            templateMangerData.getAllTemplates().then(processTemplateResponse);
+            propertyManager.getStoredItemPropertyList().then(processPropertyResponse);
+        }
         //implementation of logout
         function logout() {
             authService.logout();
@@ -135,10 +135,7 @@
             });
 
             mymodalInstance.result.then(function success() {
-                dashboardData.search().then(processResponse);
-                userData.getAllUsers().then(processUserResponse);
-                userData.apitokens().then(processTokenResponse);
-                templateMangerData.getAllTemplates().then(processTemplateResponse);
+                ctrl.loadResources();
             });
 
         }
@@ -239,10 +236,7 @@
             });
 
             mymodalInstance.result.then(function success() {
-                dashboardData.search().then(processResponse);
-                userData.getAllUsers().then(processUserResponse);
-                userData.apitokens().then(processTokenResponse);
-                templateMangerData.getAllTemplates().then(processTemplateResponse);
+                ctrl.loadResources();
             });
         }
 
@@ -335,69 +329,48 @@
                 }
             );
         }
-        $scope.uploadFile = function(){
-            var file = $scope.myFile;
-            propertyManager.uploadFileToUrl(file);
-        };
-        function getPropertyItemList(filter) {
-            return propertyManager.getStoredItemPropertyList({"search": filter, "size": 20}).then(function (response){
-                return response;
+        function processPropertyResponse(response){
+            ctrl.propertyManagerList = response;
+        }
+        function editPropertyFile(item) {
+            console.log("Edit Property File in Admin");
+
+            var mymodalInstance = $uibModal.open({
+                templateUrl: 'app/dashboard/views/editProperty.html',
+                controller: 'EditPropertyController',
+                controllerAs: 'ctrl',
+                resolve: {
+                    propertyItem: function () {
+                        return item;
+                    },
+                    propertyManager: function () {
+                        return propertyManager;
+                    }
+                }
             });
-        }
 
-        function getPropertiesForSelected(propertyType){
-            propertyManager.getSelectedItemProperties(propertyType).then(function (response){
-                ctrl.collectorItemProperties = response
-            })
-        }
-        function addProperty(form){
-
-            if (form.$valid) {
-                var submitData = {
-                    name: ctrl.propertyManager.name,
-                    propertiesKey: document.addPropertyForm.propertiesKey.value,
-                    propertiesValue: document.addPropertyForm.propertiesValue.value
-                };
-                submitProperty(submitData);
-            }
+            mymodalInstance.result.then(function success() {
+                ctrl.loadResources();
+            });
 
         }
-        function editProperty(key, value){
-            console.log(value)
-            var submitData = {
-                name: ctrl.propertyManager.name,
-                propertiesKey: key,
-                propertiesValue: value
-            };
-            submitProperty(submitData);
+        function createPropertyFile() {
+            console.log("Generate token in Admin");
+
+            var mymodalInstance = $uibModal.open({
+                templateUrl: 'app/dashboard/views/createProperty.html',
+                controller: 'CreatePropertyController',
+                controllerAs: 'ctrl',
+                resolve: {}
+            });
+
+            mymodalInstance.result.then(function success() {
+                propertyManager.getStoredItemPropertyList().then(processPropertyResponse);
+            });
+
         }
-        function deleteProperty(key, value){
-
-            var submitData = {
-                name: ctrl.propertyManager.name,
-                propertiesKey: key,
-                propertiesValue: value
-            };
-            propertyManager
-                .removeProperties(submitData)
-                .success(function (data) {
-                    getPropertiesForSelected(data.name)
-                })
-                .error(function (data) {
-
-                });
-        }
-        function submitProperty(submitData){
-
-
-            propertyManager
-                .updateProperties(submitData)
-                .success(function (data) {
-                    getPropertiesForSelected(data.name)
-                })
-                .error(function (data) {
-
-                });
+        function deletePropertyFile(id){
+            console.log("Delete Property File in Admin " + id);
         }
     }
 })();

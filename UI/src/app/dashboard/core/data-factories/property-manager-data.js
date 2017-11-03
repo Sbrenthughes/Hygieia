@@ -19,8 +19,8 @@
             removeProperties: removeProperties
         };
 
-        function getStoredItemPropertyList( params){
-            return $http.get(storedPropertyListRoute,{params: params}).then(function (response) {
+        function getStoredItemPropertyList(){
+            return $http.get(storedPropertyListRoute).then(function (response) {
                 return response.data;
             });
         }

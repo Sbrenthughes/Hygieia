@@ -13,7 +13,7 @@ public interface PropertyManagerService {
 
     PropertyManager getByName(String name) throws HygieiaException;
 
-    Page<PropertyManager> collectorPropertiesWithFilter(String filter, Pageable pageable);
+    Iterable<PropertyManager> collectorPropertiesWithFilter( Pageable pageable);
 
     PropertyManager update(PropertyManager collectorProperties) throws HygieiaException;
 

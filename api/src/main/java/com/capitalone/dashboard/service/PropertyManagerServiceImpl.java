@@ -73,8 +73,12 @@ public class PropertyManagerServiceImpl implements PropertyManagerService {
         return propertyManagerRepository.findOne(id);
     }
     @Override
-    public Page<PropertyManager> collectorPropertiesWithFilter(String filter, Pageable pageable) {
-        Page<PropertyManager> propertiesString = propertyManagerRepository.findAllByNameContainingIgnoreCase(filter, pageable);
+    public Iterable<PropertyManager> collectorPropertiesWithFilter(Pageable pageable) {
+        Iterable<PropertyManager> propertiesString = propertyManagerRepository.findAll();
+        for (PropertyManager propertyManager : propertiesString) {
+            LOGGER.info("Successfully called service " + propertyManager.getName());
+        }
+
         return propertiesString;
     }
     @Override
