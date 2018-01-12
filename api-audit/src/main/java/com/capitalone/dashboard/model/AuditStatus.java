@@ -10,13 +10,20 @@ public enum AuditStatus {
     PULLREQ_NOT_PEER_REVIEWED,
 
     //peer review type LGTM, GH REVIEW, COMMENTS ONLY
-    PEER_REVIEW_LGTM,
+    PEER_REVIEW_LGTM_SUCCESS,
+    PEER_REVIEW_LGTM_SELF_APPROVAL,
+    PEER_REVIEW_LGTM_ERROR,
+    PEER_REVIEW_LGTM_PENDING,
+    PEER_REVIEW_LGTM_UNKNOWN,
     PEER_REVIEW_GHR,
     PEER_REVIEW_REG_COMMENTS,
     PEER_REVIEW_REV_COMMENTS,
 
     //no pull requests for queried date range
     NO_PULL_REQ_FOR_DATE_RANGE,
+
+    // Error collecting from repo
+    COLLECTOR_ITEM_ERROR,
 
     // Git repo not configured
     REPO_NOT_CONFIGURED,
@@ -68,7 +75,12 @@ public enum AuditStatus {
     TEST_RESULT_AUDIT_OK,
     TEST_RESULT_AUDIT_FAIL,
     TEST_RESULT_AUDIT_MISSING,
-    
+
+    // wheather perf results are available/pass or fail
+    PERF_RESULT_AUDIT_OK,
+    PERF_RESULT_AUDIT_FAIL,
+    PERF_RESULT_AUDIT_MISSING,
+
     // whether or not build job configuration was not changed by a commit author
     BUILD_JOB_CONFIGURATION_REVIEW_FAIL,
     BUILD_JOB_CONFIGURATION_REVIEW_PASS,
