@@ -4,9 +4,7 @@ package com.capitalone.dashboard.rest;
         import com.capitalone.dashboard.model.PropertyManager;
         import com.capitalone.dashboard.request.PropertyManagerRequest;
         import com.capitalone.dashboard.service.PropertyManagerService;
-        import com.capitalone.dashboard.util.PaginationHeaderUtility;
         import org.springframework.beans.factory.annotation.Autowired;
-        import org.springframework.data.domain.Page;
         import org.springframework.data.domain.Pageable;
         import org.springframework.data.web.PageableDefault;
         import org.springframework.http.HttpStatus;
@@ -19,7 +17,6 @@ package com.capitalone.dashboard.rest;
         import javax.validation.Valid;
         import java.io.IOException;
         import java.util.Iterator;
-        import java.util.List;
         import java.util.Properties;
 
         import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -30,13 +27,10 @@ package com.capitalone.dashboard.rest;
 public class PropertyManagerController {
 
     private final PropertyManagerService propertyManagerService;
-    private PaginationHeaderUtility paginationHeaderUtility;
 
     @Autowired
-    public PropertyManagerController(PropertyManagerService propertyManagerService,
-                                         PaginationHeaderUtility paginationHeaderUtility) {
+    public PropertyManagerController(PropertyManagerService propertyManagerService) {
         this.propertyManagerService = propertyManagerService;
-        this.paginationHeaderUtility = paginationHeaderUtility;
     }
     @RequestMapping(value = "/propertyManager/propertiesFileUpload/", method = POST, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<String> fileUpload(MultipartHttpServletRequest request) {
