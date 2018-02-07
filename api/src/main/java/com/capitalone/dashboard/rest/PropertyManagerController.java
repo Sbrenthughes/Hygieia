@@ -1,23 +1,20 @@
 package com.capitalone.dashboard.rest;
 
         import com.capitalone.dashboard.misc.HygieiaException;
-        import com.capitalone.dashboard.model.PropertyManager;
-        import com.capitalone.dashboard.request.PropertyManagerRequest;
-        import com.capitalone.dashboard.service.PropertyManagerService;
+        import com.capitalone.dashboard.model.Collector;
+        import com.capitalone.dashboard.request.CollectorRequest;
+        import com.capitalone.dashboard.service.CollectorService;
+
         import org.springframework.beans.factory.annotation.Autowired;
-        import org.springframework.data.domain.Pageable;
-        import org.springframework.data.web.PageableDefault;
         import org.springframework.http.HttpStatus;
         import org.springframework.http.ResponseEntity;
-        import org.springframework.web.bind.annotation.*;
-        import org.springframework.web.multipart.MultipartFile;
-        import org.springframework.web.multipart.MultipartHttpServletRequest;
-
+        import org.springframework.web.bind.annotation.RequestBody;
+        import org.springframework.web.bind.annotation.RestController;
+        import org.springframework.web.bind.annotation.RequestMapping;
 
         import javax.validation.Valid;
-        import java.io.IOException;
-        import java.util.Iterator;
-        import java.util.Properties;
+        import java.util.ArrayList;
+        import java.util.Collection;
 
         import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
         import static org.springframework.web.bind.annotation.RequestMethod.GET;
@@ -25,71 +22,41 @@ package com.capitalone.dashboard.rest;
 
 @RestController
 public class PropertyManagerController {
-
-    private final PropertyManagerService propertyManagerService;
-
+    private final CollectorService collectorService;
     @Autowired
-    public PropertyManagerController(PropertyManagerService propertyManagerService) {
-        this.propertyManagerService = propertyManagerService;
-    }
-    @RequestMapping(value = "/propertyManager/propertiesFileUpload/", method = POST, produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> fileUpload(MultipartHttpServletRequest request) {
-
-        try {
-            Iterator<String> itr=request.getFileNames();
-            MultipartFile file = request.getFile(itr.next());
-
-
-
-            Properties collectorProperties = new Properties();
-            PropertyManager properties = new PropertyManager();
-            collectorProperties.load(file.getInputStream());
-            properties.setProperties(collectorProperties);
-            propertyManagerService.create(properties);
-
-            return ResponseEntity.ok("created");
-
-        } catch (IOException e) {
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
-                    .body(null);
-        } catch (HygieiaException he) {
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
-                    .body(he.getMessage());
-        }
-
+    public PropertyManagerController(CollectorService collectorService)  {
+        this.collectorService = collectorService;
     }
     @RequestMapping(value = "/propertyManager/propertyList/", method = GET,
             produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity<Iterable<PropertyManager>> getPropertyList(@PageableDefault(size = Integer.MAX_VALUE) Pageable pageable) {
+    public ResponseEntity<Iterable<Collector>> getPropertyList() {
+        Collection<String> excludeTypeList = new ArrayList<>();
+        Collection<String> excludeNameList = new ArrayList<>();
 
-        Iterable<PropertyManager> pageOfConfigurationItems = propertyManagerService.collectorPropertiesWithFilter(pageable);
+        excludeTypeList.add("Product");
+        excludeNameList.add("Product");
+
+        Iterable<Collector> pageOfPropertyItems = collectorService.collectorsExcludedByTypeAndName(excludeTypeList, excludeNameList);
 
         return ResponseEntity
                 .ok()
-                .body(pageOfConfigurationItems);
+                .body(pageOfPropertyItems);
 
     }
-    @RequestMapping(value = "/propertyManager/getSelectedProperty/{type}", method = GET, produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity<PropertyManager> getSelectedProperty(@PathVariable String type) {
-        try {
-            PropertyManager properties = propertyManagerService.getByName(type);
-            return ResponseEntity
-                    .ok().body(properties);
-        } catch (HygieiaException he) {
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
-                    .body(null);
-        }
+    @RequestMapping(value = "/propertyManager/getSelectedProperty/", method = GET, produces = APPLICATION_JSON_VALUE)
+    public ResponseEntity<Collector> getSelectedProperty( @Valid @RequestBody CollectorRequest collectorRequest) throws HygieiaException{
+        Collector collector = collectorRequest.toCollector();
+        return ResponseEntity
+                .ok().body( collectorService.getCollectorByTypeAndName(collector.getName(),collector.getCollectorType()));
     }
     @RequestMapping(value = "/propertyManager/updateProperties/", method = POST, produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity<PropertyManager> updateProperties( @Valid @RequestBody PropertyManagerRequest collectorPropertiesRequest) throws HygieiaException{
+    public ResponseEntity<Collector> updateProperties( @Valid @RequestBody CollectorRequest collectorRequest) throws HygieiaException{
 
         try {
-            PropertyManager properties = collectorPropertiesRequest.toCollectorProperties();
+            Collector collector = collectorRequest.toCollector();
+
             return ResponseEntity
-                    .ok().body(propertyManagerService.update(properties));
+                    .ok().body(collectorService.updatePropertyItem(collector));
         } catch (HygieiaException he) {
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
@@ -97,12 +64,13 @@ public class PropertyManagerController {
         }
 
     }
-    @RequestMapping(value = "/propertyManager/removeProperties/", method = POST, produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity<PropertyManager> removeProperties( @Valid @RequestBody PropertyManagerRequest collectorPropertiesRequest) throws HygieiaException{
+    @RequestMapping(value = "/propertyManager/removePropertyItem/", method = POST, produces = APPLICATION_JSON_VALUE)
+    public ResponseEntity<Collector> removePropertyItem( @Valid @RequestBody CollectorRequest collectorRequest) throws HygieiaException{
 
         try {
+
             return ResponseEntity
-                    .ok().body(propertyManagerService.remove(collectorPropertiesRequest));
+                    .ok().body(collectorService.removePropertyItem(collectorRequest));
         } catch (HygieiaException he) {
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)

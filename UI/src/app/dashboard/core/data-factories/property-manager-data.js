@@ -6,17 +6,17 @@
         .factory('propertyManager', propertyManager);
 
     function propertyManager($http) {
-        var fileUploadRoute = '/api/propertyManager/propertiesFileUpload/';
         var storedPropertyListRoute = '/api/propertyManager/propertyList/';
-        var selectedPropertyRoute = '/api/propertyManager/getSelectedProperty';
+        var selectedPropertyRoute = '/api/propertyManager/getSelectedProperty/';
         var updatePropertyRoute = '/api/propertyManager/updateProperties/';
-        var removePropertyRoute = '/api/propertyManager/removeProperties/'
+        var removePropertyRoute = '/api/propertyManager/removePropertyItem/';
+        var propertySelectionListRoute = '/api/propertyManager/collectorSelectionForCreate/'
         return {
             getStoredItemPropertyList: getStoredItemPropertyList,
-            uploadFileToUrl: uploadFileToUrl,
             getSelectedItemProperties: getSelectedItemProperties,
             updateProperties: updateProperties,
-            removeProperties: removeProperties
+            removeProperties: removeProperties,
+            getCollectorSelectionForPropertyCreate: getCollectorSelectionForPropertyCreate
         };
 
         function getStoredItemPropertyList(){
@@ -24,23 +24,8 @@
                 return response.data;
             });
         }
-
-        function uploadFileToUrl(file){
-            var fd = new FormData();
-            fd.append('file', file);
-
-            $http.post(fileUploadRoute, fd, {
-                transformRequest: angular.identity,
-                headers: {'Content-Type': undefined}
-            })
-                .success(function(){
-                })
-                .error(function(data){
-                    console.log(data)
-                });
-        }
-        function getSelectedItemProperties(type){
-            return $http.get(selectedPropertyRoute + "/"+type).then(function (response) {
+        function getSelectedItemProperties(data){
+            return $http.get(selectedPropertyRoute, {params: data}).then(function (response) {
                 return response.data;
             });
         }
@@ -62,6 +47,12 @@
                 .error(function (response) {
                     return null;
                 });
+        }
+        function getCollectorSelectionForPropertyCreate(params){
+            console.log(params)
+            return $http.get(propertySelectionListRoute, {params: params}).then(function (response) {
+                return response.data;
+            });
         }
     }
 })();

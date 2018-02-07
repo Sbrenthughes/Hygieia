@@ -96,5 +96,9 @@ public class CollectorController {
                 .headers(paginationHeaderUtility.buildPaginationHeaders(pageOfCollectorItems))
                 .body(pageOfCollectorItems.getContent());
     }
+    @RequestMapping(value = "/collector/{id}", method = GET, produces = APPLICATION_JSON_VALUE)
+    public ResponseEntity<Collector> getCollector(@PathVariable ObjectId id) {
+        return ResponseEntity.ok(collectorService.getCollectorById(id));
+    }
 
 }

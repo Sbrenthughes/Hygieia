@@ -4,10 +4,12 @@ import com.capitalone.dashboard.misc.HygieiaException;
 import com.capitalone.dashboard.model.Collector;
 import com.capitalone.dashboard.model.CollectorItem;
 import com.capitalone.dashboard.model.CollectorType;
+import com.capitalone.dashboard.request.CollectorRequest;
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -91,4 +93,52 @@ public interface CollectorService {
      * @return List of collectorItems
      */
     List<CollectorItem> getCollectorItemForComponent (String id, String type);
+
+    /**
+     *
+     * @param typeExcludeCollection
+     * @param nameExcludeCollection
+     * @return
+     */
+    Iterable<Collector> getAllCollectorsExcludedByTypeAndName(Collection<String> typeExcludeCollection, Collection<String> nameExcludeCollection);
+
+    /**
+     *  Gets Collector by name and collector Type
+     * @param name
+     * @param collectorType
+     * @return
+     */
+    Collector getCollectorByTypeAndName(String name, CollectorType collectorType);
+
+    /**
+     * Gets Collector by object ID
+     * @param id
+     * @return
+     */
+    Collector getCollectorById(ObjectId id);
+
+    /**
+     * Removes specific property from given collector properties
+     * @param collectorRequest
+     * @return
+     * @throws HygieiaException
+     */
+    Collector removePropertyItem(CollectorRequest collectorRequest) throws HygieiaException;
+
+    /**
+     * Updates specific property for given collector properties
+     * @param collectorProperties
+     * @return
+     * @throws HygieiaException
+     */
+    Collector updatePropertyItem(Collector collectorProperties) throws HygieiaException;
+
+    /**
+     * Gets collectors by excluding types and names
+     * @param excludeTypeList
+     * @param excludeNameList
+     * @return
+     */
+    Iterable<Collector> collectorsExcludedByTypeAndName(Collection<String> excludeTypeList, Collection<String> excludeNameList);
+
 }

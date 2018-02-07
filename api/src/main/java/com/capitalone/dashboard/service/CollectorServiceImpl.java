@@ -11,6 +11,7 @@ import com.capitalone.dashboard.repository.CollectorRepository;
 import com.capitalone.dashboard.repository.ComponentRepository;
 import com.capitalone.dashboard.repository.CustomRepositoryQuery;
 import com.capitalone.dashboard.repository.DashboardRepository;
+import com.capitalone.dashboard.request.CollectorRequest;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -217,6 +219,64 @@ public class CollectorServiceImpl implements CollectorService {
         return (List<CollectorItem>) collectorItemRepository.findAll(ids);
     }
 
+    @Override
+    public Iterable<Collector> getAllCollectorsExcludedByTypeAndName(Collection<String> typeExcludeCollection, Collection<String> nameExcludeCollection){
+
+        Iterable<Collector> collectorList = collectorRepository.findAllByCollectorTypeNotInAndNameNotIn(typeExcludeCollection, nameExcludeCollection);
+
+        return collectorList;
+    }
+
+    @Override
+    public Collector getCollectorByTypeAndName(String name, CollectorType collectorType){
+        Collector collector = collectorRepository.findByNameAndCollectorType(name, collectorType);
+        return collector;
+    }
+    @Override
+    public Collector getCollectorById(ObjectId objectId){
+        Collector collector = collectorRepository.findOne(objectId);
+        return collector;
+    }
+    @Override
+    public Collector updatePropertyItem(Collector collectorRequest) throws HygieiaException{
+        if(collectorRequest.getName() == null || collectorRequest.getName().isEmpty()){
+            throw new HygieiaException("Collector name field not found.", HygieiaException.BAD_DATA);
+        }else{
+            Collector collector = getCollectorByTypeAndName(collectorRequest.getName(), collectorRequest.getCollectorType());
+            Map properties = collector.getProperties();
+            if(properties != null) {
+                collector.getProperties().putAll(collectorRequest.getProperties());
+            }else{
+                collector.setProperties(collectorRequest.getProperties());
+            }
+            return collectorRepository.save(collector);
+
+        }
+    }
+    @Override
+    public Iterable<Collector> collectorsExcludedByTypeAndName(Collection<String> excludeTypeList, Collection<String> excludeNameList) {
+
+        Iterable<Collector> propertiesString = getAllCollectorsExcludedByTypeAndName(excludeTypeList, excludeNameList);
+
+        return propertiesString;
+    }
+    @Override
+    public Collector removePropertyItem(CollectorRequest collectorRequest) throws HygieiaException{
+
+        if(collectorRequest.getName() == null || collectorRequest.getName().isEmpty()){
+            throw new HygieiaException("Name field not found.", HygieiaException.BAD_DATA);
+        }else{
+            Collector collector = getCollectorByTypeAndName(collectorRequest.getName(),collectorRequest.getCollectorType());
+            String key = collectorRequest.getPropertyKey();
+            if(key != null && !key.isEmpty()){
+                collector.getProperties().remove(key);
+                return collectorRepository.save(collector);
+            }else{
+                throw new HygieiaException("Key field not found.", HygieiaException.BAD_DATA);
+            }
+
+        }
+    }
     private Collector collectorById(ObjectId collectorId, List<Collector> collectors) {
         for (Collector collector : collectors) {
             if (collector.getId().equals(collectorId)) {

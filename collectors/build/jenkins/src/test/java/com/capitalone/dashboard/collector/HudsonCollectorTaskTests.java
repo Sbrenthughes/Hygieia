@@ -202,7 +202,7 @@ public class HudsonCollectorTaskTests {
     }
 
     private HudsonCollector collectorWithOneServer() {
-        return HudsonCollector.prototype(Arrays.asList(SERVER1), Arrays.asList(NICENAME1), Arrays.asList(ENVIONMENT1));
+        return HudsonCollector.prototype(hudsonSettings);
     }
 
     private Map<HudsonJob, Map<HudsonClient.jobData, Set<BaseModel>>> oneJobWithBuilds(HudsonJob job, Build... builds) {

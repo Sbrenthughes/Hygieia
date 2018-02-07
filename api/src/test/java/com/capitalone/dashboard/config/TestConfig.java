@@ -37,7 +37,6 @@ import com.capitalone.dashboard.util.PaginationHeaderUtility;
 import com.capitalone.dashboard.service.Monitor2Service;
 import com.capitalone.dashboard.service.PerformanceService;
 import com.capitalone.dashboard.service.CmdbService;
-import com.capitalone.dashboard.service.PropertyManagerService;
 
 
 /**
@@ -209,11 +208,6 @@ public class TestConfig {
   @Bean
     public TemplateService templateService() {
         return Mockito.mock(TemplateService.class);
-    }
-
-    @Bean
-    public PropertyManagerService propertyManagerService() {
-        return Mockito.mock(PropertyManagerService.class);
     }
 
 }

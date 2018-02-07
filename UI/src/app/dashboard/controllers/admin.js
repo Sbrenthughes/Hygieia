@@ -51,7 +51,6 @@
         ctrl.loadResources = loadResources;
         ctrl.editPropertyFile = editPropertyFile;
         ctrl.deletePropertyFile = deletePropertyFile;
-        ctrl.createPropertyFile = createPropertyFile;
         $scope.tab = "dashboards";
 
         // list of available themes. Must be updated manually
@@ -348,26 +347,6 @@
                     }
                 }
             });
-
-            mymodalInstance.result.then(function success() {
-                ctrl.loadResources();
-            });
-
-        }
-        function createPropertyFile() {
-            console.log("Generate token in Admin");
-
-            var mymodalInstance = $uibModal.open({
-                templateUrl: 'app/dashboard/views/createProperty.html',
-                controller: 'CreatePropertyController',
-                controllerAs: 'ctrl',
-                resolve: {}
-            });
-
-            mymodalInstance.result.then(function success() {
-                propertyManager.getStoredItemPropertyList().then(processPropertyResponse);
-            });
-
         }
         function deletePropertyFile(id){
             console.log("Delete Property File in Admin " + id);

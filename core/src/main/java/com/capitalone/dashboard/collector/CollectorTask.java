@@ -55,6 +55,9 @@ public abstract class CollectorTask<T extends Collector> implements Runnable {
             newCollector.setCollectorType(collector.getCollectorType());
             newCollector.setLastExecuted(collector.getLastExecuted());
             newCollector.setName(collector.getName());
+            if(collector.getProperties() != null && !collector.getProperties().isEmpty()) {
+                newCollector.setProperties(collector.getProperties());
+            }
             collector = getCollectorRepository().save(newCollector);
         }
 

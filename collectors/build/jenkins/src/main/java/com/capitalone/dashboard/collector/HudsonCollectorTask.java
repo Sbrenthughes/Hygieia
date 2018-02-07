@@ -68,8 +68,7 @@ public class HudsonCollectorTask extends CollectorTask<HudsonCollector> {
 
     @Override
     public HudsonCollector getCollector() {
-        return HudsonCollector.prototype(hudsonSettings.getServers(), hudsonSettings.getNiceNames(),
-                hudsonSettings.getEnvironments());
+        return HudsonCollector.prototype(hudsonSettings);
     }
 
     @Override
@@ -90,11 +89,11 @@ public class HudsonCollectorTask extends CollectorTask<HudsonCollector> {
         List<HudsonJob> existingJobs = hudsonJobRepository.findByCollectorIdIn(udId);
         List<HudsonJob> activeJobs = new ArrayList<>();
         List<String> activeServers = new ArrayList<>();
-        activeServers.addAll(collector.getBuildServers());
+        activeServers.addAll((List<String>) collector.getProperties().get("servers"));
 
         clean(collector, existingJobs);
 
-        for (String instanceUrl : collector.getBuildServers()) {
+        for (String instanceUrl : (List<String>) collector.getProperties().get("servers")) {
             logBanner(instanceUrl);
             try {
                 Map<HudsonJob, Map<HudsonClient.jobData, Set<BaseModel>>> dataByJob = hudsonClient
@@ -167,7 +166,10 @@ public class HudsonCollectorTask extends CollectorTask<HudsonCollector> {
             if (job.isPushed()) continue; // build servers that push jobs will not be in active servers list by design
 
             // if we have a collector item for the job in repository but it's build server is not what we collect, remove it.
-            if (!collector.getBuildServers().contains(job.getInstanceUrl())) {
+            Map properties = collector.getProperties();
+            List<String> buildServers = (List<String>) properties.get("servers");
+
+            if (!buildServers.contains(job.getInstanceUrl())) {
                 deleteJobList.add(job);
             }
 
@@ -311,9 +313,9 @@ public class HudsonCollectorTask extends CollectorTask<HudsonCollector> {
     }
 
     private String getNiceName(HudsonJob job, HudsonCollector collector) {
-        if (CollectionUtils.isEmpty(collector.getBuildServers())) return "";
-        List<String> servers = collector.getBuildServers();
-        List<String> niceNames = collector.getNiceNames();
+        if (CollectionUtils.isEmpty((List<String>) collector.getProperties().get("servers"))) return "";
+        List<String> servers = (List<String>) collector.getProperties().get("servers");
+        List<String> niceNames = (List<String>) collector.getProperties().get("niceNames");
         if (CollectionUtils.isEmpty(niceNames)) return "";
         for (int i = 0; i < servers.size(); i++) {
             if (servers.get(i).equalsIgnoreCase(job.getInstanceUrl()) && (niceNames.size() > i)) {
@@ -324,9 +326,9 @@ public class HudsonCollectorTask extends CollectorTask<HudsonCollector> {
     }
 
     private String getEnvironment(HudsonJob job, HudsonCollector collector) {
-        if (CollectionUtils.isEmpty(collector.getBuildServers())) return "";
-        List<String> servers = collector.getBuildServers();
-        List<String> environments = collector.getEnvironments();
+        if (CollectionUtils.isEmpty((List<String>) collector.getProperties().get("servers"))) return "";
+        List<String> servers = (List<String>) collector.getProperties().get("servers");
+        List<String> environments = (List<String>) collector.getProperties().get("environments");
         if (CollectionUtils.isEmpty(environments)) return "";
         for (int i = 0; i < servers.size(); i++) {
             if (servers.get(i).equalsIgnoreCase(job.getInstanceUrl()) && (environments.size() > i)) {

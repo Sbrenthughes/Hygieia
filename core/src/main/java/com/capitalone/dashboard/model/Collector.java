@@ -21,6 +21,8 @@ public class Collector extends BaseModel {
     private Map<String, Object> uniqueFields = new HashMap<>();
     private Map<String, Object> allFields = new HashMap<>();
 
+    private Map properties;
+
     private long lastExecuted;
 
     public Collector() {
@@ -93,5 +95,13 @@ public class Collector extends BaseModel {
 
     public void setAllFields(Map<String, Object> allFields) {
         this.allFields = allFields;
+    }
+
+    public Map getProperties() {
+        return properties;
+    }
+
+    public void setProperties(Map properties) {
+        this.properties = properties;
     }
 }
