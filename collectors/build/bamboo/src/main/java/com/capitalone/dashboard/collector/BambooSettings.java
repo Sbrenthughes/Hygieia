@@ -1,5 +1,6 @@
 package com.capitalone.dashboard.collector;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
@@ -20,7 +21,8 @@ public class BambooSettings {
     private String username;
     private String apiKey;
     private String dockerLocalHostIP; //null if not running in docker on http://localhost
-
+    @Value("${feature.useV2:true}")
+    private boolean useV2;
     public String getCron() {
         return cron;
     }
@@ -60,7 +62,7 @@ public class BambooSettings {
     public void setApiKey(String apiKey) {
         this.apiKey = apiKey;
     }
-    
+
     public void setDockerLocalHostIP(String dockerLocalHostIP) {
         this.dockerLocalHostIP = dockerLocalHostIP;
     }
@@ -73,7 +75,15 @@ public class BambooSettings {
         this.niceNames = niceNames;
     }
 
-	//Docker NATs the real host localhost to 10.0.2.2 when running in docker
+    public boolean isUseV2() {
+        return useV2;
+    }
+
+    public void setUseV2(boolean useV2) {
+        this.useV2 = useV2;
+    }
+
+    //Docker NATs the real host localhost to 10.0.2.2 when running in docker
 	//as localhost is stored in the JSON payload from jenkins we need
 	//this hack to fix the addresses
     public String getDockerLocalHostIP() {

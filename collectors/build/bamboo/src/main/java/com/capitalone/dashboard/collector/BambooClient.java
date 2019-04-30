@@ -3,6 +3,7 @@ package com.capitalone.dashboard.collector;
 import com.capitalone.dashboard.model.Build;
 import com.capitalone.dashboard.model.BambooJob;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -20,6 +21,7 @@ public interface BambooClient {
      * @return a summary of every build for each job on the instance
      */
     Map<BambooJob, Set<Build>> getInstanceJobs(String instanceUrl);
+    List< BambooJob > getInstanceJobsV2(String instanceUrl);
 
     /**
      * Fetch full populated build information for a build.
@@ -29,4 +31,5 @@ public interface BambooClient {
      * @return a Build instance or null
      */
     Build getBuildDetails(String buildUrl, String instanceUrl);
+    Map<BambooJob, Set<Build>> getBuilds(BambooJob job);
 }

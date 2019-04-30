@@ -31,7 +31,9 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.LinkedHashMap;
@@ -53,10 +55,168 @@ public class DefaultBambooClient implements BambooClient {
     private static final String JOBS_RESULT_SUFFIX= "rest/api/latest/result/";
     private static final String BUILD_DETAILS_URL_SUFFIX = "?expand=results.result.artifacts&expand=changes.change.files";
 
+    private static final String JOBS_URL_SUFFIX_V2 = "rest/api/latest/plan?expand=plans";
+    private static final int BAMBOO_PLAN_PAGING = 100;
+    private static JSONParser parser = new JSONParser();
+
     @Autowired
     public DefaultBambooClient(Supplier<RestOperations> restOperationsSupplier, BambooSettings settings) {
         this.rest = restOperationsSupplier.get();
         this.settings = settings;
+    }
+    @Override
+    public List< BambooJob > getInstanceJobsV2(String instanceUrl) {
+        List< BambooJob > planList = new ArrayList<>();
+        boolean isLast = false;
+        int startAt = 0;
+        while ( !isLast ) {
+            try {
+                String url = joinURL(instanceUrl, JOBS_URL_SUFFIX_V2);
+                ResponseEntity<String> responseEntity = makeRestCall(url+"&start-index="+startAt+"&max-result=" + BAMBOO_PLAN_PAGING);
+                String returnJSON = responseEntity.getBody();
+
+                JSONObject responseObject = (JSONObject) parser.parse(returnJSON);
+                if (responseObject == null) {
+                    isLast = true;
+                    continue;
+                }
+                JSONObject plans = (JSONObject) responseObject.get("plans");
+                if (plans == null) {
+                    isLast = true;
+                    continue;
+                }
+                int size = Integer.parseInt(getString( plans, "size"));
+
+                JSONArray plansArray = getJsonArray(plans, "plan");
+                if (!CollectionUtils.isEmpty(plansArray)) {
+                    for (Object job : plansArray) {
+                        JSONObject jsonJob = (JSONObject) job;
+
+                        final String planName = getString(jsonJob, "key");
+                        JSONObject link=(JSONObject)jsonJob.get("link");
+                        final String planURL = getString(link, "href");
+
+                        LOG.info("Plan:" + planName);
+                        LOG.info("PlanURL: " + planURL);
+
+                        // In terms of Bamboo this is the plan not job
+                        BambooJob bambooJob = new BambooJob();
+                        bambooJob.setInstanceUrl(instanceUrl);
+                        bambooJob.setJobName(planName);
+                        bambooJob.setJobUrl(planURL);
+
+                        planList.add(bambooJob);
+                    }
+                }
+                if(planList.size() == size ){
+                    isLast = true;
+                }else{
+                    startAt += BAMBOO_PLAN_PAGING;
+                }
+
+            } catch ( ParseException pe ) {
+                isLast = true;
+                LOG.error("Parsing jobs on instance: " + instanceUrl, pe);
+            } catch ( RestClientException rce ) {
+                LOG.error("client exception loading jobs", rce);
+                throw rce;
+            } catch ( MalformedURLException mfe ) {
+                LOG.error("malformed url for loading jobs", mfe);
+            }
+        }
+        return planList;
+    }
+    @Override
+    public  Map<BambooJob, Set<Build>> getBuilds(BambooJob job) {
+        Map<BambooJob, Set<Build>> buildMap = new LinkedHashMap<>();
+
+        try {
+            String resultUrl = joinURL(job.getInstanceUrl(),JOBS_RESULT_SUFFIX);
+            String planName = job.getJobName();
+            resultUrl = joinURL(resultUrl, planName);
+
+            //Basic Builds
+            ResponseEntity<String>  responseEntity = makeRestCall(resultUrl);
+            String returnJSON = responseEntity.getBody();
+            JSONObject responseObject = (JSONObject) parser.parse(returnJSON);
+            Set<Build> builds = new LinkedHashSet<>();
+
+            if (responseObject != null) {
+                JSONObject results = (JSONObject) responseObject.get("results");
+                if (results != null) {
+                    JSONArray result = getJsonArray(results, "result");
+                    if (!CollectionUtils.isEmpty(result)) {
+                        for (Object build : result) {
+                            JSONObject jsonBuild = (JSONObject) build;
+                            builds.add(parseBuild(jsonBuild, resultUrl));
+                        }
+                    }
+                }
+            }
+            buildMap.put(job, builds);
+            //But we might have many branches and subplans in them so we have to find them out as well
+            String branchesUrl= joinURL(job.getJobUrl(),"/branch");
+            responseEntity = makeRestCall(branchesUrl);
+            returnJSON = responseEntity.getBody();
+            responseObject = (JSONObject) parser.parse(returnJSON);
+
+            if (responseObject != null) {
+                JSONObject branches = (JSONObject) responseObject.get("branches");
+                if (branches != null) {
+                    JSONArray branchArray = getJsonArray(branches, "branch");
+                    if (!CollectionUtils.isEmpty(branchArray)) {
+                        for (Object branch : branchArray) {
+                            JSONObject banchObject = (JSONObject) branch;
+                            String subPlan = getString(banchObject, "key");
+                            resultUrl = joinURL(job.getInstanceUrl(),JOBS_RESULT_SUFFIX);
+                            resultUrl = joinURL(resultUrl,subPlan);
+                            LOG.info("sub Plan:" + subPlan);
+                            LOG.info("sub plan-Result URL:"+ resultUrl);
+                            responseEntity = makeRestCall(resultUrl);
+                            returnJSON = responseEntity.getBody();
+                            JSONObject jsonJob = (JSONObject) parser.parse(returnJSON);
+                            for (Object build : getJsonArray((JSONObject)jsonJob.get("results"), "result")) {
+                                LOG.info("Entered each build for nested plan : "+ subPlan);
+                                JSONObject jsonBuild = (JSONObject) build;
+                                builds.add(parseBuild(jsonBuild, resultUrl));
+                            }
+
+
+                            buildMap.put(job, builds);
+                        }
+                    }
+                }
+            }
+
+        } catch ( ParseException pe ) {
+            LOG.error("Parsing jobs on instance: " + job.getInstanceUrl(), pe);
+        }catch (MalformedURLException mfe) {
+            LOG.error("malformed url for loading jobs", mfe);
+        }
+        return buildMap;
+    }
+
+    private Build parseBuild(JSONObject jsonBuild, String resultUrl) throws MalformedURLException{
+        String dockerLocalHostIP = settings.getDockerLocalHostIP();
+        String buildNumber = getString(jsonBuild, "buildNumber");
+
+        Build bambooBuild = new Build();
+        if (!"0".equals(buildNumber)) {
+            bambooBuild.setNumber(buildNumber);
+            String buildURL = joinURL(resultUrl,buildNumber);
+
+            //Modify localhost if Docker Natting is being done
+            if (!dockerLocalHostIP.isEmpty()) {
+                buildURL = buildURL.replace("localhost", dockerLocalHostIP);
+                LOG.debug("Adding build & Updated URL to map LocalHost for Docker: " + buildURL);
+            } else {
+                LOG.debug(" Adding Build: " + buildURL);
+            }
+
+            bambooBuild.setBuildUrl(buildURL);
+
+        }
+        return bambooBuild;
     }
     @SuppressWarnings("PMD.ExcessiveMethodLength")
     @Override
@@ -88,7 +248,7 @@ public class DefaultBambooClient implements BambooClient {
                     bambooJob.setJobName(planName);
                     bambooJob.setJobUrl(planURL);
 
-                    // Finding out the results of the top-level plan 
+                    // Finding out the results of the top-level plan
 
                     String resultUrl = joinURL(instanceUrl,JOBS_RESULT_SUFFIX);
                     resultUrl = joinURL(resultUrl,planName);
@@ -213,12 +373,12 @@ public class DefaultBambooClient implements BambooClient {
                     build.setNumber(buildJson.get("buildNumber").toString());
                     build.setBuildUrl(buildUrl);
                     build.setTimestamp(System.currentTimeMillis());
-                    
-                    
+
+
                     SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");//"2016-06-23T09:13:29.961+07:00"
                     Date parsedDate = dateFormat.parse(buildJson.get("buildStartedTime").toString());
                     build.setStartTime((Long) parsedDate.getTime());
-                    
+
                     build.setDuration((Long) buildJson.get("buildDuration"));
                     build.setEndTime(build.getStartTime() + build.getDuration());
                     build.setBuildStatus(getBuildStatus(buildJson));
@@ -319,7 +479,9 @@ public class DefaultBambooClient implements BambooClient {
     }
 
     private String getString(JSONObject json, String key) {
-        return (String) json.get(key);
+        if (json == null) return "";
+        Object value = json.get(key);
+        return (value == null) ? "" : value.toString();
     }
 
     private String getRevision(JSONObject jsonItem) {
@@ -329,8 +491,9 @@ public class DefaultBambooClient implements BambooClient {
     }
 
     private JSONArray getJsonArray(JSONObject json, String key) {
-        Object array = json.get(key);
-        return array == null ? new JSONArray() : (JSONArray) array;
+        if (json == null) return new JSONArray();
+        if (json.get(key) == null) return new JSONArray();
+        return (JSONArray) json.get(key);
     }
 
     private String firstCulprit(JSONObject buildJson) {

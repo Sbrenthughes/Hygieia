@@ -23,6 +23,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.client.RestClientException;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -90,12 +91,19 @@ public class BambooCollectorTask extends CollectorTask<BambooCollector> {
         for (String instanceUrl : collector.getBuildServers()) {
             logBanner(instanceUrl);
             try {
-                Map<BambooJob, Set<Build>> buildsByJob = bambooClient
-                        .getInstanceJobs(instanceUrl);
-                log("Fetched jobs", start);
-                activeJobs.addAll(buildsByJob.keySet());
-                addNewJobs(buildsByJob.keySet(), existingJobs, collector);
-                addNewBuilds(enabledJobs(collector, instanceUrl), buildsByJob);
+                if(bambooSettings.isUseV2()) {
+                    List<BambooJob> jobsV2 = bambooClient.getInstanceJobsV2(instanceUrl);
+                    addNewJobsV2(jobsV2, existingJobs, collector);
+                    addNewBuildsV2(enabledJobs(collector, instanceUrl));
+                    activeJobs.addAll(jobsV2);
+                }else {
+                    Map<BambooJob, Set<Build>> buildsByJob = bambooClient
+                            .getInstanceJobs(instanceUrl);
+                    log("Fetched jobs", start);
+                    activeJobs.addAll(buildsByJob.keySet());
+                    addNewJobs(buildsByJob.keySet(), existingJobs, collector);
+                    addNewBuilds(enabledJobs(collector, instanceUrl), buildsByJob);
+                }
                 log("Finished", start);
             } catch (RestClientException rce) {
                 activeServers.remove(instanceUrl); // since it was a rest exception, we will not delete this job  and wait for
@@ -105,6 +113,67 @@ public class BambooCollectorTask extends CollectorTask<BambooCollector> {
         }
         // Delete jobs that will be no longer collected because servers have moved etc.
         deleteUnwantedJobs(activeJobs, existingJobs, activeServers, collector);
+    }
+    private void addNewJobsV2(List<BambooJob> jobs, List<BambooJob> existingJobs, BambooCollector collector) {
+        long start = System.currentTimeMillis();
+        int count = 0;
+
+        List<BambooJob> newJobs = new ArrayList<>();
+        for (BambooJob job : jobs) {
+            BambooJob existing = null;
+            if (!CollectionUtils.isEmpty(existingJobs) && (existingJobs.contains(job))) {
+                existing = existingJobs.get(existingJobs.indexOf(job));
+            }
+
+            String niceName = getNiceName(job, collector);
+            if (existing == null) {
+                job.setCollectorId(collector.getId());
+                job.setEnabled(false); // Do not enable for collection. Will be enabled when added to dashboard
+                job.setDescription(job.getJobName());
+                job.setLastUpdated(System.currentTimeMillis());
+                if (StringUtils.isNotEmpty(niceName)) {
+                    job.setNiceName(niceName);
+                }
+                newJobs.add(job);
+                count++;
+            } else if (StringUtils.isEmpty(existing.getNiceName()) && StringUtils.isNotEmpty(niceName)) {
+                existing.setNiceName(niceName);
+                bambooJobRepository.save(existing);
+            }
+        }
+        //save all in one shot
+        if (!CollectionUtils.isEmpty(newJobs)) {
+            bambooJobRepository.save(newJobs);
+        }
+        log("New jobs", start, count);
+    }
+    private void addNewBuildsV2(List<BambooJob> enabledJobs) {
+        long start = System.currentTimeMillis();
+        int count = 0;
+
+        for (BambooJob job : enabledJobs) {
+            if (job.isPushed()) {
+                LOG.info("Job Pushed already: " + job.getJobName());
+                continue;
+            }
+
+            Map<BambooJob, Set<Build>> buildsV2 = bambooClient.getBuilds(job);
+            ArrayList<Build> buildsArray = Lists.newArrayList(nullSafe(buildsV2.get(job)));
+            buildsArray.sort(Comparator.comparing(Build::getNumber));
+            for (Build buildSummary : buildsArray) {
+                if (isNewBuild(job, buildSummary)) {
+                    Build build = bambooClient.getBuildDetails(buildSummary
+                            .getBuildUrl(), job.getInstanceUrl());
+                    if (build != null) {
+                        build.setCollectorItemId(job.getId());
+                        buildRepository.save(build);
+                        count++;
+                    }
+
+                }
+            }
+        }
+        log("New builds", start, count);
     }
 
     /**
